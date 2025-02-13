@@ -1,1 +1,4 @@
-# No external dependencies required for this application
+# Project dependencies
+sqlite3  # Usually comes with Python
+tkinter  # Usually comes with Python standard library
+random  # Part of Python standard library

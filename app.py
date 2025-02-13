@@ -1,141 +1,227 @@
 from database import connect_db, create_tables
 from models import Team, Match, Group
 import random
+import tkinter as tk
+from tkinter import ttk, messagebox
 
-class Tournament:
-    def __init__(self, groups):
-        self.groups = groups
+class TournamentGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Tournament Manager")
+        self.root.geometry("800x600")
+        
+        # Create main notebook for tabs
+        self.notebook = ttk.Notebook(root)
+        self.notebook.pack(expand=True, fill='both', padx=10, pady=5)
+        
+        # Create tabs
+        self.team_frame = ttk.Frame(self.notebook)
+        self.match_frame = ttk.Frame(self.notebook)
+        self.group_frame = ttk.Frame(self.notebook)
+        self.random_frame = ttk.Frame(self.notebook)
+        
+        self.notebook.add(self.team_frame, text='Team Management')
+        self.notebook.add(self.match_frame, text='Match Management')
+        self.notebook.add(self.group_frame, text='Group Management')
+        self.notebook.add(self.random_frame, text='Random Assignment')
+        
+        self.setup_team_tab()
+        self.setup_match_tab()
+        self.setup_group_tab()
+        self.setup_random_tab()
 
-    def start(self):
-        print("Tournament started!")
-        # Add tournament logic here
+    def setup_team_tab(self):
+        # Team Name Entry
+        ttk.Label(self.team_frame, text="Team Name:").pack(pady=5)
+        self.team_name_entry = ttk.Entry(self.team_frame)
+        self.team_name_entry.pack(pady=5)
+        
+        ttk.Button(self.team_frame, text="Add Team", 
+                  command=self.add_team).pack(pady=10)
 
-def team_management_menu():
-    while True:
-        print("\nTeam Management Menu:")
-        print("1. Add Team")
-        print("2. Exit")
-        choice = input("Choose an option: ")
+    def setup_match_tab(self):
+        # Match Management Controls
+        ttk.Label(self.match_frame, text="Team 1 ID:").pack(pady=5)
+        self.team1_id_entry = ttk.Entry(self.match_frame)
+        self.team1_id_entry.pack(pady=5)
+        
+        ttk.Label(self.match_frame, text="Team 2 ID:").pack(pady=5)
+        self.team2_id_entry = ttk.Entry(self.match_frame)
+        self.team2_id_entry.pack(pady=5)
+        
+        ttk.Button(self.match_frame, text="Add Match", 
+                  command=self.add_match).pack(pady=10)
+        
+        # Score Update Section
+        ttk.Label(self.match_frame, text="Update Score").pack(pady=10)
+        ttk.Label(self.match_frame, text="Match ID:").pack(pady=5)
+        self.match_id_entry = ttk.Entry(self.match_frame)
+        self.match_id_entry.pack(pady=5)
+        
+        ttk.Label(self.match_frame, text="Score Team 1:").pack(pady=5)
+        self.score1_entry = ttk.Entry(self.match_frame)
+        self.score1_entry.pack(pady=5)
+        
+        ttk.Label(self.match_frame, text="Score Team 2:").pack(pady=5)
+        self.score2_entry = ttk.Entry(self.match_frame)
+        self.score2_entry.pack(pady=5)
+        
+        ttk.Button(self.match_frame, text="Update Score", 
+                  command=self.update_match_score).pack(pady=10)
 
-        if choice == '1':
-            team_name = input("Enter team name: ")
+    def setup_group_tab(self):
+        # Group Management Controls
+        ttk.Label(self.group_frame, text="Group Name:").pack(pady=5)
+        self.group_name_entry = ttk.Entry(self.group_frame)
+        self.group_name_entry.pack(pady=5)
+        
+        ttk.Button(self.group_frame, text="Create Group", 
+                  command=self.create_group).pack(pady=10)
+        
+        # Add Team to Group Section
+        ttk.Label(self.group_frame, text="Add Team to Group").pack(pady=10)
+        ttk.Label(self.group_frame, text="Group ID:").pack(pady=5)
+        self.group_id_entry = ttk.Entry(self.group_frame)
+        self.group_id_entry.pack(pady=5)
+        
+        ttk.Label(self.group_frame, text="Team ID:").pack(pady=5)
+        self.team_id_entry = ttk.Entry(self.group_frame)
+        self.team_id_entry.pack(pady=5)
+        
+        ttk.Button(self.group_frame, text="Add Team to Group", 
+                  command=self.add_team_to_group).pack(pady=10)
+
+    def setup_random_tab(self):
+        # Random Assignment Controls
+        ttk.Label(self.random_frame, text="Number of Teams:").pack(pady=5)
+        self.num_teams_entry = ttk.Entry(self.random_frame)
+        self.num_teams_entry.pack(pady=5)
+        
+        ttk.Label(self.random_frame, text="Number of Groups:").pack(pady=5)
+        self.num_groups_entry = ttk.Entry(self.random_frame)
+        self.num_groups_entry.pack(pady=5)
+        
+        ttk.Button(self.random_frame, text="Start Random Assignment", 
+                  command=self.start_random_assignment).pack(pady=10)
+        
+        self.result_text = tk.Text(self.random_frame, height=10, width=40)
+        self.result_text.pack(pady=10)
+
+    def add_team(self):
+        team_name = self.team_name_entry.get()
+        if team_name:
             team = Team(team_name)
             team.save()
-            print(f"Team '{team_name}' added.")
-        elif choice == '2':
-            break
+            messagebox.showinfo("Success", f"Team '{team_name}' added successfully!")
+            self.team_name_entry.delete(0, tk.END)
         else:
-            print("Invalid choice, please try again.")
+            messagebox.showerror("Error", "Please enter a team name!")
 
-def match_management_menu():
-    while True:
-        print("\nMatch Management Menu:")
-        print("1. Add Match")
-        print("2. Update Match Score")
-        print("3. Exit")
-        choice = input("Choose an option: ")
-
-        if choice == '1':
-            team1_id = int(input("Enter Team 1 ID: "))
-            team2_id = int(input("Enter Team 2 ID: "))
+    def add_match(self):
+        try:
+            team1_id = int(self.team1_id_entry.get())
+            team2_id = int(self.team2_id_entry.get())
             match = Match(team1_id, team2_id)
             match.save()
-            print(f"Match added between Team {team1_id} and Team {team2_id}.")
-        elif choice == '2':
-            match_id = int(input("Enter Match ID: "))
-            score1 = int(input("Enter score for Team 1: "))
-            score2 = int(input("Enter score for Team 2: "))
+            messagebox.showinfo("Success", f"Match added between Team {team1_id} and Team {team2_id}!")
+            self.team1_id_entry.delete(0, tk.END)
+            self.team2_id_entry.delete(0, tk.END)
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid team IDs!")
+
+    def update_match_score(self):
+        try:
+            match_id = int(self.match_id_entry.get())
+            score1 = int(self.score1_entry.get())
+            score2 = int(self.score2_entry.get())
             match = Match.get_match(match_id)
             match.update_score(score1, score2)
-            print(f"Score updated for match between Team {match.team1_id} and Team {match.team2_id}.")
-        elif choice == '3':
-            break
-        else:
-            print("Invalid choice, please try again.")
+            messagebox.showinfo("Success", "Match score updated successfully!")
+            self.match_id_entry.delete(0, tk.END)
+            self.score1_entry.delete(0, tk.END)
+            self.score2_entry.delete(0, tk.END)
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid numbers!")
 
-def group_management_menu():
-    while True:
-        print("\nGroup Management Menu:")
-        print("1. Create Group")
-        print("2. Add Team to Group")
-        print("3. Exit")
-        choice = input("Choose an option: ")
-
-        if choice == '1':
-            group_name = input("Enter group name: ")
+    def create_group(self):
+        group_name = self.group_name_entry.get()
+        if group_name:
             group = Group(group_name)
             group.save()
-            print(f"Group '{group_name}' added.")
-        elif choice == '2':
-            group_id = int(input("Enter Group ID: "))
-            team_id = int(input("Enter Team ID: "))
-            Group.add_team(group_id, team_id)
-            print(f"Team {team_id} added to Group {group_id}.")
-        elif choice == '3':
-            break
+            messagebox.showinfo("Success", f"Group '{group_name}' created successfully!")
+            self.group_name_entry.delete(0, tk.END)
         else:
-            print("Invalid choice, please try again.")
+            messagebox.showerror("Error", "Please enter a group name!")
 
-def random_group_assignment():
-    num_teams = int(input("Enter the number of teams: "))
-    num_groups = int(input("Enter the number of groups: "))
-    
-    teams = []
-    for i in range(num_teams):
-        team_name = input(f"Enter name for Team {i + 1}: ")
-        teams.append(team_name)
+    def add_team_to_group(self):
+        try:
+            group_id = int(self.group_id_entry.get())
+            team_id = int(self.team_id_entry.get())
+            Group.add_team(group_id, team_id)
+            messagebox.showinfo("Success", f"Team {team_id} added to Group {group_id}!")
+            self.group_id_entry.delete(0, tk.END)
+            self.team_id_entry.delete(0, tk.END)
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid IDs!")
 
-    random.shuffle(teams)
-    
-    groups = {f'Group {i + 1}': [] for i in range(num_groups)}
-    
-    for i, team in enumerate(teams):
-        group_number = i % num_groups
-        groups[f'Group {group_number + 1}'].append(team)
-
-    for group, team_list in groups.items():
-        print(f"{group}: {', '.join(team_list)}")
-
-    return groups
+    def start_random_assignment(self):
+        try:
+            num_teams = int(self.num_teams_entry.get())
+            num_groups = int(self.num_groups_entry.get())
+            
+            if num_teams < num_groups:
+                messagebox.showerror("Error", "Number of teams must be greater than number of groups!")
+                return
+                
+            self.result_text.delete(1.0, tk.END)
+            teams = []
+            
+            def get_team_names():
+                dialog = tk.Toplevel(self.root)
+                dialog.title("Enter Team Names")
+                entries = []
+                
+                for i in range(num_teams):
+                    ttk.Label(dialog, text=f"Team {i + 1}:").grid(row=i, column=0, pady=2)
+                    entry = ttk.Entry(dialog)
+                    entry.grid(row=i, column=1, pady=2)
+                    entries.append(entry)
+                
+                def submit():
+                    for entry in entries:
+                        teams.append(entry.get())
+                    dialog.destroy()
+                
+                ttk.Button(dialog, text="Submit", command=submit).grid(row=num_teams, column=0, columnspan=2, pady=10)
+                
+                dialog.wait_window()
+            
+            get_team_names()
+            
+            if len(teams) == num_teams:
+                random.shuffle(teams)
+                groups = {f'Group {i + 1}': [] for i in range(num_groups)}
+                
+                for i, team in enumerate(teams):
+                    group_number = i % num_groups
+                    groups[f'Group {group_number + 1}'].append(team)
+                
+                result = ""
+                for group, team_list in groups.items():
+                    result += f"{group}: {', '.join(team_list)}\n"
+                
+                self.result_text.insert(tk.END, result)
+                
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid numbers!")
 
 def main():
     conn = connect_db()
     create_tables(conn)
-    conn.close()
-
-    main_menu()
-
-def main_menu():
-    tournament = None  # Initialize the tournament variable
-
-    while True:
-        print("\nMain Menu:")
-        print("1. Team Management")
-        print("2. Match Management")
-        print("3. Group Management")
-        print("4. Randomly Assign Teams to Groups")
-        print("5. Start Tournament")
-        print("6. Exit")
-        choice = input("Choose an option: ")
-
-        if choice == '1':
-            team_management_menu()
-        elif choice == '2':
-            match_management_menu()
-        elif choice == '3':
-            group_management_menu()
-        elif choice == '4':
-            groups = random_group_assignment()  # Modify this to return groups
-            tournament = Tournament(groups)  # Create a new tournament instance
-        elif choice == '5':
-            if tournament:
-                tournament.start()
-            else:
-                print("Please assign teams to groups before starting the tournament.")
-        elif choice == '6':
-            break
-        else:
-            print("Invalid choice, please try again.")
+    
+    root = tk.Tk()
+    app = TournamentGUI(root)
+    root.mainloop()
 
 if __name__ == '__main__':
     main()
